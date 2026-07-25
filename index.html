@@ -15,6 +15,7 @@
     1) Credenciales de Firebase (firebaseConfig)
     2) Número de WhatsApp y usuario de Instagram
     3) Dirección del local
+    4) Nombres de archivo de imágenes (buscá "IMAGEN:")
   La guía completa de cómo crear el proyecto en Firebase está en
   la respuesta del chat donde se entregó este archivo.
   ============================================================
@@ -305,25 +306,54 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 /* PROYECTO / TP DE MARKETING */
-.project-section{background:var(--bg);}
+.project-section{
+  position:relative;
+  background:
+    radial-gradient(ellipse 900px 500px at 12% 0%, rgba(127,191,158,0.14), transparent 60%),
+    radial-gradient(ellipse 800px 600px at 100% 30%, rgba(239,131,115,0.10), transparent 55%),
+    linear-gradient(180deg, #f6f7f2 0%, #faf6f2 55%, var(--bg) 100%);
+  overflow:hidden;
+}
 .project-card{
   max-width:900px; margin:0 auto 2.6rem; background:var(--card); border:1px solid var(--line);
-  border-radius:var(--radius-md); padding:1.6rem 1.8rem; box-shadow:var(--shadow-sm);
+  border-radius:var(--radius-md); padding:1.6rem 1.8rem; box-shadow:var(--shadow-md);
+  position:relative;
 }
 .project-meta{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem;}
 .project-meta div span{display:block; font-size:0.78rem; color:var(--ink-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.25rem;}
 .project-meta div strong{font-size:0.95rem;}
 
+/* Foto + video de apoyo, arriba del acordeón */
+.project-media{
+  max-width:900px; margin:0 auto 2.6rem; display:grid; grid-template-columns:1fr 1fr; gap:1.4rem;
+}
+.project-media-item{
+  border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-md);
+  border:1px solid var(--line); background:var(--card);
+}
+.project-media-item img{width:100%; aspect-ratio:4/3; object-fit:cover;}
+.video-frame{position:relative; width:100%; aspect-ratio:4/3; background:var(--ink);}
+.video-frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
+.project-media-caption{padding:0.9rem 1.1rem; font-size:0.85rem; color:var(--ink-muted); font-weight:600;}
+@media (max-width:700px){ .project-media{grid-template-columns:1fr;} }
+
 .accordion{max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:0.9rem;}
 .accordion details{
   background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md);
-  padding:0; overflow:hidden;
+  padding:0; overflow:hidden; box-shadow:var(--shadow-sm);
+  transition:box-shadow .25s var(--ease), border-color .25s var(--ease);
 }
+.accordion details[open]{box-shadow:var(--shadow-md); border-color:var(--green-mist);}
 .accordion summary{
   list-style:none; cursor:pointer; padding:1.2rem 1.5rem; font-weight:700; font-size:1.02rem;
-  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  display:flex; align-items:center; gap:0.9rem;
 }
 .accordion summary::-webkit-details-marker{display:none;}
+.summary-icon{
+  width:36px; height:36px; border-radius:50%; background:var(--green-mist); color:var(--green-deep);
+  display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0;
+}
+.summary-text{flex:1;}
 .accordion summary::after{
   content:"+"; font-size:1.3rem; color:var(--green-deep); font-weight:700; flex-shrink:0;
   transition:transform .2s var(--ease);
@@ -334,6 +364,40 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .accordion .accordion-body p:last-child{margin-bottom:0;}
 .accordion .accordion-body strong{color:var(--ink);}
 .accordion .accordion-body ul{padding-left:1.2rem; margin-bottom:0.7rem;}
+
+/* Pirámide de Maslow (gráfico) */
+.maslow-wrap{display:flex; flex-direction:column; align-items:center; gap:2px; margin-bottom:1.2rem; padding:0.4rem 0;}
+.maslow-level{
+  width:100%; max-width:420px; padding:0.55rem 1rem; text-align:center; font-size:0.82rem; font-weight:700;
+  color:var(--ink-muted); background:var(--bg); border-radius:8px; transition:transform .2s var(--ease);
+}
+.maslow-level span{display:block; font-weight:500; font-size:0.75rem; margin-top:1px;}
+.maslow-level.l1{max-width:420px;}
+.maslow-level.l2{max-width:355px;}
+.maslow-level.l3{max-width:290px;}
+.maslow-level.l4{max-width:225px;}
+.maslow-level.l5{
+  max-width:160px; background:var(--coral); color:#fff; font-weight:700;
+  box-shadow:var(--shadow-coral); transform:scale(1.04);
+}
+
+/* Grid visual 4P */
+.p4-grid{display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; margin-top:0.4rem;}
+.p4-card{
+  background:var(--bg); border-radius:var(--radius-sm); padding:1rem 1.1rem;
+  border:1px solid var(--line);
+}
+.p4-card .p4-icon{
+  width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:0.95rem; margin-bottom:0.6rem; color:#fff;
+}
+.p4-card:nth-child(1) .p4-icon{background:var(--green);}
+.p4-card:nth-child(2) .p4-icon{background:var(--coral);}
+.p4-card:nth-child(3) .p4-icon{background:var(--green-deep);}
+.p4-card:nth-child(4) .p4-icon{background:var(--coral-deep);}
+.p4-card h5{font-size:0.9rem; margin-bottom:0.3rem; color:var(--ink);}
+.p4-card p{color:var(--ink-muted); font-size:0.88rem; margin:0;}
+@media (max-width:560px){ .p4-grid{grid-template-columns:1fr;} }
 
 /* CONTACTO */
 .contact-card{
@@ -486,7 +550,8 @@ footer{
 <header class="navbar" id="navbar">
   <div class="navbar-inner">
     <a href="#inicio" class="brand" id="brandLogo">
-      <span class="brand-logo" style="display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🧩</span>
+      <!-- IMAGEN: logo.png -->
+      <img class="brand-logo" src="logo.jpeg" alt="Logo Giaco">
       Giaco
     </a>
     <div class="search-wrap">
@@ -524,7 +589,8 @@ footer{
       </p>
     </div>
     <div class="blob-frame">
-      <div class="blob-shape" style="display:flex;align-items:center;justify-content:center;font-size:4rem;">🧸</div>
+      <!-- IMAGEN: hero.jpg -->
+      <img class="blob-shape" src="hero.jpg" alt="Juguete Giaco impreso en 3D">
     </div>
   </section>
 
@@ -556,7 +622,8 @@ footer{
   <section id="nosotros" class="section about-section">
     <div class="about-grid">
       <div class="about-blob">
-        <div style="position:absolute;inset:0;width:100%;height:100%;background:var(--card);border-radius:41% 59% 57% 43% / 51% 46% 54% 49%;box-shadow:var(--shadow-md);animation:morph 11s ease-in-out infinite alternate-reverse;display:flex;align-items:center;justify-content:center;font-size:3.5rem;">🖨️</div>
+        <!-- IMAGEN: nosotros.jpg -->
+        <img src="nosotros.jpeg" alt="Proceso de impresión 3D de Giaco">
       </div>
       <div class="about-text">
         <span class="eyebrow">Nuestra misión</span>
@@ -592,9 +659,24 @@ footer{
         </div>
       </div>
 
+      <div class="project-media">
+        <div class="project-media-item">
+          <!-- IMAGEN: proceso.jpg -->
+          <img src="proceso.png" alt="Proceso de impresión 3D de un juguete Giaco">
+          <p class="project-media-caption">Así nace cada pieza: diseño, impresión y control de calidad.</p>
+        </div>
+        <div class="project-media-item">
+          <div class="video-frame">
+            <!-- VIDEO: reemplazá VIDEO_ID por el ID de un video de YouTube (ver instrucciones en el chat) -->
+            <iframe src="https://www.youtube.com/embed/EAFZV7C4vQA" title="Video sobre impresión 3D" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+          </div>
+          <p class="project-media-caption">Mirá cómo funciona la impresión 3D que usamos en Giaco.</p>
+        </div>
+      </div>
+
       <div class="accordion">
         <details open>
-          <summary>¿Qué es el marketing para nosotros?</summary>
+          <summary><span class="summary-icon">💡</span><span class="summary-text">¿Qué es el marketing para nosotros?</span></summary>
           <div class="accordion-body">
             <p>Entendemos el marketing como el proceso mediante el cual identificamos, creamos, comunicamos y entregamos valor para satisfacer una necesidad real, con un beneficio para nuestro emprendimiento. No lo confundimos con la publicidad: la publicidad es solo una herramienta (la comunicación paga y masiva de un mensaje), mientras que el marketing incluye también investigar el mercado, diseñar el producto, fijar el precio, elegir cómo lo distribuimos y cuidar la relación con cada cliente.</p>
             <p>Nuestra cadena de valor sigue cinco pasos: comprender el mercado y las necesidades de las familias, diseñar una estrategia orientada al cliente, armar un programa integrado de producto-precio-plaza-promoción, construir relaciones rentables y de confianza, y finalmente captar valor para poder seguir creciendo.</p>
@@ -602,15 +684,22 @@ footer{
         </details>
 
         <details>
-          <summary>¿Dónde se ubica Giaco en la pirámide de Maslow?</summary>
+          <summary><span class="summary-icon">📐</span><span class="summary-text">¿Dónde se ubica Giaco en la pirámide de Maslow?</span></summary>
           <div class="accordion-body">
+            <div class="maslow-wrap">
+              <div class="maslow-level l5">Autorrealización<span>Giaco está acá</span></div>
+              <div class="maslow-level l4">Reconocimiento</div>
+              <div class="maslow-level l3">Afiliación</div>
+              <div class="maslow-level l2">Seguridad</div>
+              <div class="maslow-level l1">Fisiológicas</div>
+            </div>
             <p>La pirámide de Maslow organiza las necesidades humanas en cinco niveles: fisiológicas, seguridad, afiliación, reconocimiento y autorrealización. En marketing la usamos para entender qué motivación profunda impulsa una compra y enfocar el mensaje hacia esa necesidad.</p>
             <p>Ubicamos a Giaco en el nivel de <strong>autorrealización</strong>: nuestros productos satisfacen la necesidad de desarrollo personal, creatividad y aprendizaje de cada niño y niña.</p>
           </div>
         </details>
 
         <details>
-          <summary>¿Por qué el valor es tan importante?</summary>
+          <summary><span class="summary-icon">💰</span><span class="summary-text">¿Por qué el valor es tan importante?</span></summary>
           <div class="accordion-body">
             <p>Porque nadie compra solamente un objeto: compra la percepción de que lo que recibe supera lo que invierte en dinero, tiempo y esfuerzo. Por eso pensamos el valor en cuatro planos:</p>
             <ul>
@@ -623,17 +712,19 @@ footer{
         </details>
 
         <details>
-          <summary>Nuestras 4P: producto, precio, plaza y promoción</summary>
+          <summary><span class="summary-icon">🧩</span><span class="summary-text">Nuestras 4P: producto, precio, plaza y promoción</span></summary>
           <div class="accordion-body">
-            <p><strong>Producto:</strong> juegos impresos en 3D para mejorar la motricidad de niños con y sin dificultades motoras, personalizados, resistentes y adaptados a cada necesidad.</p>
-            <p><strong>Precio:</strong> se define según tamaño, complejidad y material, buscando que sea accesible para familias y centros de salud.</p>
-            <p><strong>Plaza:</strong> venta a través de esta tienda virtual y redes sociales, con retiro en nuestro local.</p>
-            <p><strong>Promoción:</strong> redes sociales mostrando el uso real de los juguetes, y atención personalizada por WhatsApp.</p>
+            <div class="p4-grid">
+              <div class="p4-card"><div class="p4-icon">📦</div><h5>Producto</h5><p>Juegos impresos en 3D para mejorar la motricidad de niños con y sin dificultades motoras, personalizados y resistentes.</p></div>
+              <div class="p4-card"><div class="p4-icon">💵</div><h5>Precio</h5><p>Se define según tamaño, complejidad y material, buscando que sea accesible para familias y centros de salud.</p></div>
+              <div class="p4-card"><div class="p4-icon">🏬</div><h5>Plaza</h5><p>Venta a través de esta tienda virtual y redes sociales, con retiro en nuestro local.</p></div>
+              <div class="p4-card"><div class="p4-icon">📣</div><h5>Promoción</h5><p>Redes sociales mostrando el uso real de los juguetes, y atención personalizada por WhatsApp.</p></div>
+            </div>
           </div>
         </details>
 
         <details>
-          <summary>Nuestro enfoque y tipo de marketing</summary>
+          <summary><span class="summary-icon">🎯</span><span class="summary-text">Nuestro enfoque y tipo de marketing</span></summary>
           <div class="accordion-body">
             <p>Entre las orientaciones históricas del marketing (producción, producto, ventas, marketing y marketing holístico), elegimos la <strong>orientación al marketing</strong>, centrada en el cliente: nuestro objetivo es entender las necesidades reales de las familias y adaptar el producto a sus expectativas.</p>
             <p>Para eso combinamos <strong>marketing digital</strong> y <strong>marketing operativo</strong>: nos permiten llegar de forma directa a nuestro público, medir resultados en tiempo real y mantener un costo de inversión acorde a esta primera etapa del emprendimiento.</p>
@@ -641,7 +732,7 @@ footer{
         </details>
 
         <details>
-          <summary>Fidelización y marketing directo</summary>
+          <summary><span class="summary-icon">🤝</span><span class="summary-text">Fidelización y marketing directo</span></summary>
           <div class="accordion-body">
             <p>Fidelizar es construir una relación de confianza para que cada familia elija volver a comprarnos. Para retener clientes ofrecemos un servicio rápido y empático, pedimos retroalimentación después de cada entrega y damos beneficios a clientes frecuentes: un descuento exclusivo en la segunda compra y notas personalizadas en cada paquete.</p>
             <p>Usamos marketing directo porque permite una comunicación uno a uno, personalizada y medible, a través de WhatsApp Business y mensajes directos de Instagram: por ejemplo, avisar cuando llega un producto que un cliente estaba esperando.</p>
@@ -649,14 +740,14 @@ footer{
         </details>
 
         <details>
-          <summary>¿Por qué elegimos vender online?</summary>
+          <summary><span class="summary-icon">🌐</span><span class="summary-text">¿Por qué elegimos vender online?</span></summary>
           <div class="accordion-body">
             <p>Elegimos vender por internet, con retiro en nuestro local de Nueva Córdoba, porque reduce costos fijos como el alquiler de un local más grande, amplía nuestro alcance geográfico y permite a cada familia comprar las 24 horas del día.</p>
           </div>
         </details>
 
         <details>
-          <summary>Nuestro plan de marketing, en breve</summary>
+          <summary><span class="summary-icon">📋</span><span class="summary-text">Nuestro plan de marketing, en breve</span></summary>
           <div class="accordion-body">
             <p>Giaco diseña y fabrica juguetes personalizados con impresión 3D para chicos con y sin discapacidad, buscando posicionarse en el mercado de juguetes personalizados, crecer en ventas digitales y promover la inclusión.</p>
             <p>Nuestro público son familias con niños, escuelas, jardines, centros de rehabilitación y profesionales del desarrollo infantil. El catálogo incluye juguetes educativos, sensoriales y didácticos personalizables en tamaño, color, forma y diseño, con precios competitivos según el nivel de personalización. Distribuimos por esta tienda, redes sociales y ferias de emprendedores, y promocionamos con contenido en redes, colaboraciones y atención directa.</p>
@@ -683,7 +774,7 @@ footer{
             WhatsApp
           </a>
           <!-- CONFIGURAR: usuario de Instagram -->
-          <a href="https://www.instagram.com/campana_mateo" target="_blank" rel="noopener" class="social-btn instagram">
+          <a href="https://www.instagram.com/maca_print3d?igsh=MWlmMjV1enNudXk5Nw==" target="_blank" rel="noopener" class="social-btn instagram">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             Instagram
           </a>
