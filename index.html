@@ -28,7 +28,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 
 <style>
 :root{
@@ -779,10 +778,10 @@ footer{
             <label>Imagen del producto</label>
             <div class="file-drop">
               <input type="file" id="pImage" accept="image/*">
-              <span>Elegir imagen (máx. 3MB, se sube a Firebase Storage)</span>
+              <span>Elegir imagen (se optimiza y guarda sola, sin costo)</span>
             </div>
             <img id="pImagePreview" class="img-preview" alt="Vista previa">
-            <div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar" id="uploadProgressBar"></div></div>
+            <p class="success-text" id="imageProcessing" style="display:none;">Optimizando imagen...</p>
           </div>
           <p class="error-text" id="productError"></p>
           <div style="display:flex; gap:0.7rem;">
@@ -819,24 +818,62 @@ footer{
 /* ---------- CONFIGURAR: pegá acá las credenciales de tu proyecto Firebase ---------- */
 /* Las conseguís en la consola de Firebase > Configuración del proyecto > Tus apps > SDK setup */
 const firebaseConfig = {
-  apiKey: "PEGAR_API_KEY",
-  authDomain: "PEGAR_PROYECTO.firebaseapp.com",
-  projectId: "PEGAR_PROYECTO",
-  storageBucket: "PEGAR_PROYECTO.appspot.com",
-  messagingSenderId: "PEGAR_SENDER_ID",
-  appId: "PEGAR_APP_ID"
+  apiKey: "AIzaSyAYpu4jJ3zGx1vYyb0236rRZIBDx4ImtcA",
+  authDomain: "giacoxdlol.firebaseapp.com",
+  projectId: "giacoxdlol",
+  storageBucket: "giacoxdlol.firebasestorage.app",
+  messagingSenderId: "343997383685",
+  appId: "1:343997383685:web:5f485ac1fd67a9edc9886c"
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
+/* Nota: no usamos Firebase Storage (requiere plan pago Blaze).
+   Las imágenes se guardan comprimidas directo en Firestore, en el plan gratuito. */
 
 (function(){
   "use strict";
 
-  const MAX_IMAGE_SIZE = 3 * 1024 * 1024; // 3MB
   const WHATSAPP_NUMBER = "5493513553751"; // CONFIGURAR: tu número con código de país (54 9 + código de área + número), sin '+' ni espacios
+  const MAX_IMAGE_CHARS = 700000; // límite de seguridad para que el producto entre cómodo en un documento de Firestore (máx. 1MB por doc)
+
+  /* Comprime y redimensiona la imagen en el navegador para poder guardarla directo en Firestore,
+     sin necesitar Firebase Storage (que exige plan pago). Devuelve una Promise<string dataURL>. */
+  function compressImageToDataURL(file){
+    return new Promise((resolve, reject)=>{
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onerror = ()=> reject(new Error("No pudimos leer la imagen."));
+      reader.onload = (ev)=>{
+        img.onerror = ()=> reject(new Error("El archivo elegido no es una imagen válida."));
+        img.onload = ()=>{
+          const maxDim = 900;
+          let { width, height } = img;
+          if(width > height && width > maxDim){ height = Math.round(height * (maxDim/width)); width = maxDim; }
+          else if(height > maxDim){ width = Math.round(width * (maxDim/height)); height = maxDim; }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+
+          let quality = 0.75;
+          let dataUrl = canvas.toDataURL("image/jpeg", quality);
+          // Si todavía pesa demasiado para guardar en Firestore, bajamos la calidad hasta que entre.
+          while(dataUrl.length > MAX_IMAGE_CHARS && quality > 0.3){
+            quality -= 0.15;
+            dataUrl = canvas.toDataURL("image/jpeg", quality);
+          }
+          if(dataUrl.length > MAX_IMAGE_CHARS){
+            reject(new Error("La imagen es muy pesada incluso comprimida. Probá con una foto más chica."));
+            return;
+          }
+          resolve(dataUrl);
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 
   /* ---------- Placeholder de imagen (SVG inline, sin dependencias externas) ---------- */
   function placeholderImg(seed){
@@ -854,7 +891,7 @@ const storage = firebase.storage();
   let currentFilter = "all";
   let searchQuery = "";
   let editingProductId = null;
-  let pendingImageFile = null;
+  let pendingImageData = null;
   let isAdmin = false;
 
   function escapeHtml(text){
@@ -1213,7 +1250,7 @@ const storage = firebase.storage();
     const p = products.find(x=>x.id===id);
     if(!p) return;
     editingProductId = id;
-    pendingImageFile = null;
+    pendingImageData = null;
     $("pId").value = id;
     $("pName").value = p.name;
     $("pPrice").value = p.price;
@@ -1234,19 +1271,22 @@ const storage = firebase.storage();
   $("pImage").addEventListener("change",(e)=>{
     const file = e.target.files[0];
     $("productError").textContent = "";
-    if(!file){ pendingImageFile = null; return; }
-    if(file.size > MAX_IMAGE_SIZE){
-      $("productError").textContent = "La imagen supera los 3MB.";
-      e.target.value = ""; pendingImageFile = null;
-      return;
-    }
-    pendingImageFile = file;
-    const reader = new FileReader();
-    reader.onload = (ev)=>{
-      $("pImagePreview").src = ev.target.result;
-      $("pImagePreview").style.display = "block";
-    };
-    reader.readAsDataURL(file);
+    pendingImageData = null;
+    if(!file) return;
+    $("imageProcessing").style.display = "block";
+    $("pImagePreview").style.display = "none";
+    compressImageToDataURL(file)
+      .then((dataUrl)=>{
+        pendingImageData = dataUrl;
+        $("imageProcessing").style.display = "none";
+        $("pImagePreview").src = dataUrl;
+        $("pImagePreview").style.display = "block";
+      })
+      .catch((err)=>{
+        $("imageProcessing").style.display = "none";
+        $("productError").textContent = err.message;
+        e.target.value = "";
+      });
   });
 
   $("productForm").addEventListener("submit",(e)=>{
@@ -1263,49 +1303,26 @@ const storage = firebase.storage();
     const submitBtn = $("productSubmitBtn");
     submitBtn.disabled = true; submitBtn.textContent = "Guardando...";
 
-    const finishSave = (imageUrl)=>{
-      const data = { name, price, description, categoryId };
-      if(imageUrl !== undefined) data.image = imageUrl;
-      const promise = editingProductId
-        ? db.collection("products").doc(editingProductId).update(data)
-        : db.collection("products").add({ ...data, image: data.image || "", createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      promise.then(()=>{
-        submitBtn.disabled = false; submitBtn.textContent = "Guardar producto";
-        resetProductForm();
-      }).catch(err=>{
-        submitBtn.disabled = false; submitBtn.textContent = "Guardar producto";
-        $("productError").textContent = "Error al guardar: " + err.message;
-      });
-    };
+    const data = { name, price, description, categoryId };
+    if(pendingImageData) data.image = pendingImageData;
 
-    if(pendingImageFile){
-      const path = `productos/${Date.now()}_${pendingImageFile.name}`;
-      const ref = storage.ref(path);
-      const task = ref.put(pendingImageFile);
-      $("uploadProgress").style.display = "block";
-      task.on("state_changed", (snap)=>{
-        const pct = (snap.bytesTransferred / snap.totalBytes) * 100;
-        $("uploadProgressBar").style.width = pct + "%";
-      }, (err)=>{
-        submitBtn.disabled = false; submitBtn.textContent = "Guardar producto";
-        $("productError").textContent = "Error al subir la imagen: " + err.message;
-        $("uploadProgress").style.display = "none";
-      }, ()=>{
-        task.snapshot.ref.getDownloadURL().then((url)=>{
-          $("uploadProgress").style.display = "none";
-          $("uploadProgressBar").style.width = "0%";
-          finishSave(url);
-        });
-      });
-    } else {
-      finishSave(undefined);
-    }
+    const promise = editingProductId
+      ? db.collection("products").doc(editingProductId).update(data)
+      : db.collection("products").add({ ...data, image: data.image || "", createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+
+    promise.then(()=>{
+      submitBtn.disabled = false; submitBtn.textContent = "Guardar producto";
+      resetProductForm();
+    }).catch(err=>{
+      submitBtn.disabled = false; submitBtn.textContent = "Guardar producto";
+      $("productError").textContent = "Error al guardar: " + err.message;
+    });
   });
 
   $("cancelProductEdit").addEventListener("click", resetProductForm);
   function resetProductForm(){
     editingProductId = null;
-    pendingImageFile = null;
+    pendingImageData = null;
     $("productForm").reset();
     $("pImagePreview").style.display = "none";
     $("productError").textContent = "";
